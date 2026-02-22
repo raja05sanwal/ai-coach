@@ -5,6 +5,8 @@ import google.generativeai as genai
 from PIL import Image
 from datetime import date
 
+genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+
 if 'health_profile' not in st.session_state:
     st.session_state.health_profile = {
     'goals': '',
@@ -625,6 +627,13 @@ with tab5:
             st.success("Progress Logged ✅")
 
         data = st.session_state.progress_data
+
+        recovery_score = (
+            int(sum(data["recovery"]) / len(data["recovery"]))
+            if data["recovery"] else 50
+        )
+
+        adherence = int((data["workout_done"] / data["days"]) * 100) if data["days"] else 0
 
         if data["days"] > 0:
 
