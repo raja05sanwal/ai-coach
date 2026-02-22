@@ -1,3 +1,4 @@
+# version: 2.0 final project code
 import streamlit as st
 import os
 import google.generativeai as genai
@@ -43,7 +44,6 @@ def get_gemini_response(input_prompt, image_data=None):
     except Exception as e:
         error_str = str(e)
         
-        # Check for common quota-related error indicators
         if "429" in error_str or "quota" in error_str.lower() or "exceeded" in error_str.lower():
             return """🚫 **API Daily Quota Reached**
 
@@ -320,7 +320,6 @@ with tab1:
                 st.info("📺 Copy the video title and paste it on YouTube to watch")
                 st.markdown(response)
 
-                # 🎥 Convert video titles into clickable YouTube searches
                 if include_youtube:
 
                     st.subheader("🎥 Recommended Videos")
@@ -478,7 +477,6 @@ with tab5:
         "📊 Progress Dashboard"
     ])
 
-    # 🎯 GOAL MODE
     with subtab1:
         st.markdown("### Select Your Fitness Goal")
 
@@ -491,7 +489,6 @@ with tab5:
         if goal_mode == "Student Budget":
             st.info("💰 Smart budget mode activated — AI will optimize for low-cost Indian meals.")
 
-    # 🔥 CALORIE CALCULATOR
     with subtab2:
         st.markdown("### Calorie & Macro Calculator")
 
@@ -530,7 +527,6 @@ with tab5:
             st.metric("Carbs", f"{carbs} g")
             st.metric("Fats", f"{fats} g")
 
-    # 🍱 MEAL MACRO ANALYZER
     with subtab3:
         st.markdown("### AI Meal Macro Analyzer")
 
@@ -542,7 +538,6 @@ with tab5:
                 response = get_gemini_response(prompt)
                 st.markdown(response)
 
-    # 😴 RECOVERY SCORE
     with subtab4:
         st.markdown("### Sleep & Recovery Score")
 
