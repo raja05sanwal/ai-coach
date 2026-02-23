@@ -1,4 +1,3 @@
-# version: 2.0 final project code
 import streamlit as st
 import os
 import google.generativeai as genai
@@ -6,6 +5,8 @@ from PIL import Image
 from datetime import date
 
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+
+DEV_MODE = False   # 🔁 Turn OFF before final deployment
 
 if 'health_profile' not in st.session_state:
     st.session_state.health_profile = {
@@ -15,12 +16,23 @@ if 'health_profile' not in st.session_state:
     'preferences': '',
     'restrictions': '',
     'budget': '150-200',
-    'currency': 'USD'
+    'currency': 'USD ($)'
     }
 
+if "workout_streak" not in st.session_state:
+    st.session_state.workout_streak = 0
+
+if "last_workout_date" not in st.session_state:
+    st.session_state.last_workout_date = None
+
 if "progress_data" not in st.session_state:
-    if "workout_streak" not in st.session_state:
-            st.session_state.workout_streak = 0
+    st.session_state.progress_data = {
+        "weight": [],
+        "calories": [],
+        "workout_done": 0,
+        "days": 0,
+        "recovery": []
+    }
 
     if "last_workout_date" not in st.session_state:
         st.session_state.last_workout_date = None
@@ -33,6 +45,22 @@ if "progress_data" not in st.session_state:
     }
 
 def get_gemini_response(input_prompt, image_data=None):
+
+    if DEV_MODE:
+            return """
+                ✅ DEV MODE RESPONSE
+
+                This is a dummy AI response for testing UI.
+
+                - Calories: 2200 kcal
+                - Protein: 120 g
+                - Workout: Push Pull Legs
+                - Budget meal: Rice + Dal + Eggs
+                - Recovery: Good
+
+                Turn DEV_MODE = False to use real AI.
+                """
+
     model = genai.GenerativeModel('gemini-2.5-flash')
 
     content = [input_prompt]
@@ -157,7 +185,7 @@ with tab1:
     if uploaded_workout_image is not None:
         try:
             img = Image.open(uploaded_workout_image)
-            st.image(img, caption="Preview (please confirm to use this image)", use_column_width=True)
+            st.image(img, caption="Preview (please confirm to use this image)", width="stretch")
         except Exception:
             st.write("Unable to preview the image.")
 
@@ -550,12 +578,44 @@ with tab5:
         workout_done_today = st.checkbox("✅ Workout completed today")
 
         if st.button("Save Today’s Progress"):
+            today = date.today()
+
+            # ✅ calculate recovery ONCE
+            recovery_score = max(0, min(100, int((sleep * 10) - (stress * 3) + (water * 5))))
+
+            # ✅ save recovery
+            st.session_state.progress_data["recovery"].append(recovery_score)
+
+            # ✅ workout adherence
             if workout_done_today:
                 st.session_state.progress_data["workout_done"] += 1
+
+                if st.session_state.last_workout_date:
+                    gap = (today - st.session_state.last_workout_date).days
+                    if gap == 1:
+                        st.session_state.workout_streak += 1
+                    elif gap > 1:
+                        st.session_state.workout_streak = 1
+                else:
+                    st.session_state.workout_streak = 1
+
+                st.session_state.last_workout_date = today
+
+            # ✅ day counter
             if "last_logged_date" not in st.session_state:
                 st.session_state.last_logged_date = None
 
-            today = date.today()
+            if st.session_state.last_logged_date != today:
+                st.session_state.progress_data["days"] += 1
+                st.session_state.last_logged_date = today
+
+            # ✅ UI OUTPUT
+            st.success("Progress saved ✅")
+            st.metric("Recovery Score", recovery_score)
+            st.metric("🔥 Workout Streak", st.session_state.workout_streak)
+
+            st.markdown("### Workout Status Today:")
+            st.write(f'- Completed: {"YES" if workout_done_today else "NO"}')
 
             if st.session_state.last_logged_date != today:
                 st.session_state.progress_data["days"] += 1
@@ -567,45 +627,6 @@ with tab5:
             st.session_state.progress_data["recovery"].append(
                 int((sleep * 10) - (stress * 3) + (water * 5))
             )
-        today = date.today()
-
-        if workout_done_today:
-            if st.session_state.last_workout_date:
-                gap = (today - st.session_state.last_workout_date).days
-                if gap == 1:
-                    st.session_state.workout_streak += 1
-                elif gap > 1:
-                    st.session_state.workout_streak = 1
-            else:
-                st.session_state.workout_streak = 1
-
-            st.session_state.last_workout_date = today
-
-            st.success("Progress saved ✅")
-
-        recovery_score = int((sleep * 10) - (stress * 3) + (water * 5))
-
-        st.metric("Recovery Score", recovery_score)
-
-        with st.spinner("Analyzing your recovery..."):
-
-            if workout_done_today:
-                st.success("Great job completing your workout today 💪")
-            else:
-                prompt = f"""
-                My recovery score is {recovery_score}.
-                I have NOT completed my workout today.
-                Should I train today? Give:
-                - workout intensity
-                - duration
-                - type of workout
-                - recovery advice
-                """
-
-                response = get_gemini_response(prompt)
-                st.markdown(response)
-                
-        st.metric("🔥 Workout Streak", st.session_state.workout_streak)
 
     with subtab5:
         st.markdown("### 📊 Daily Progress Tracker")
@@ -616,15 +637,29 @@ with tab5:
 
         if st.button("Log Today’s Data"):
 
-            st.session_state.progress_data["weight"].append(weight_today)
-            st.session_state.progress_data["calories"].append(calories_today)
-            st.session_state.progress_data["recovery"].append(recovery_score)
-            st.session_state.progress_data["days"] += 1
+            today = date.today()
 
-            if workout_done:
-                st.session_state.progress_data["workout_done"] += 1
+            if st.session_state.last_logged_date == today:
+                st.warning("You already logged today’s data ✅")
+            else:
+                st.session_state.progress_data["weight"].append(weight_today)
+                st.session_state.progress_data["calories"].append(calories_today)
 
-            st.success("Progress Logged ✅")
+                # use latest recovery score from session (from subtab4)
+                latest_recovery = st.session_state.progress_data["recovery"][-1] if st.session_state.progress_data["recovery"] else 50
+                st.session_state.progress_data["recovery"].append(latest_recovery)
+
+                st.session_state.progress_data["days"] += 1
+                st.session_state.last_logged_date = today
+
+                if workout_done:
+                    st.session_state.progress_data["workout_done"] += 1
+
+                st.success("Progress Logged ✅")
+    today = date.today()
+
+    if "last_logged_date" not in st.session_state:
+        st.session_state.last_logged_date = None
 
         data = st.session_state.progress_data
 
@@ -672,8 +707,6 @@ with tab5:
 
         if st.button("📅 Generate Weekly AI Report"):
             with st.spinner("Generating your weekly AI report..."):
-
-                adherence = int((data["workout_done"] / data["days"]) * 100) if data["days"] else 0
 
                 prompt = f"""
                 Generate a weekly fitness report.
