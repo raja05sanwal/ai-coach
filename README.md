@@ -74,3 +74,48 @@ Other | JSON, Datetime |
 ```bash
 git clone https://github.com/raja05sanwal/ai-coach.git
 cd ai-coach
+
+2️⃣ Install dependencies
+pip install -r requirements.txt
+
+3️⃣ Set your API key
+GOOGLE_API_KEY=your_api_key_here
+
+4️⃣ Run the application
+streamlit run app.py
+
+🧠 How It Works
+
+1️⃣ Enter your health profile
+2️⃣ Select your fitness goal
+3️⃣ AI analyzes your data
+4️⃣ Generates:
+
+🏋️ Workout plan
+🥗 Diet plan
+😴 Recovery insights
+⏱ Productivity routine
+
+🎯 Use Cases
+👨‍🎓 Students with limited time & budget
+🏠 Home & gym workout users
+⚖️ Weight gain / weight loss transformation
+📚 Study + fitness balance
+
+🔮 Future Scope
+📱 Mobile responsive design
+⌚ Smartwatch / wearable integration
+📊 Advanced analytics dashboard
+🌍 Multi-language support
+🎙 Voice-based AI coach
+
+👨‍💻 Author
+Raja
+If you like this project:
+
+⭐ Star the repo
+🍴 Fork it
+📢 Share it
+
+📜 License
+This project is licensed under the MIT License.
