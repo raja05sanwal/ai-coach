@@ -32,8 +32,6 @@ Designed especially for **students & busy individuals** who want affordable and 
 
 - 🧠 AI-generated workout planning
 - 🥗 Personalized vegetarian & custom diet planning
-- 🔥 HIIT & Tabata support
-- ⏱ Pomodoro productivity timer
 - 📅 Downloadable fitness schedule
 - 📊 Calorie calculator & macro analyzer
 - 😴 Sleep & recovery score system
@@ -61,7 +59,6 @@ Frontend | Streamlit |
 Backend | Python |
 AI Model | Google Gemini |
 Data Processing | Pandas |
-Calendar Export | iCalendar |
 Image Handling | PIL |
 Other | JSON, Datetime |
 
